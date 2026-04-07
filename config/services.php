@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'cybersource' => [
+        'access_key' => env('CYBERSOURCE_ACCESS_KEY'),
+        'profile_id' => env('CYBERSOURCE_PROFILE_ID'),
+        'secret_key' => env('CYBERSOURCE_SECRET_KEY'),
+        'environment' => env('CYBERSOURCE_ENVIRONMENT', 'test'),
+    ],
+
+    'billing' => [
+        'webhook_secret' => env('BILLING_WEBHOOK_SECRET'),
+    ],
+
 ];

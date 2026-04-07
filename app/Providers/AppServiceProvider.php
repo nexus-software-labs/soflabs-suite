@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\PaymentCompleted;
+use App\Events\PaymentFailed;
 use App\Http\Controllers\Auth\TenantAuthController;
 use App\Http\Middleware\Filament\PrepareFilamentPanelContext;
 use App\Http\Responses\Filament\AppPanelLogoutResponse;
+use App\Listeners\SyncSubscriptionPaymentStatus;
 use App\Models\Branch;
 use App\Models\Media;
 use App\Models\User;
@@ -16,6 +19,7 @@ use Filament\Auth\Http\Responses\Contracts\LogoutResponse as FilamentLogoutRespo
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -58,6 +62,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewAdmin', function (User $user): bool {
             return $user->is_super_admin === true;
         });
+
+        Event::listen(PaymentCompleted::class, [SyncSubscriptionPaymentStatus::class, 'handle']);
+        Event::listen(PaymentFailed::class, [SyncSubscriptionPaymentStatus::class, 'handle']);
 
         $this->app->make(Router::class)
             ->aliasMiddleware('panel', PrepareFilamentPanelContext::class);

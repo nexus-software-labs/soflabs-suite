@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Branch;
+use App\Models\Subscriptions\TenantSubscription;
 use App\Models\Tenant;
 use App\Models\User;
 
@@ -17,6 +18,8 @@ class TenantContext
     public ?User $user = null;
 
     public array $modules = [];
+
+    public ?TenantSubscription $subscription = null;
 
     public function hasTenant(): bool
     {
@@ -60,5 +63,17 @@ class TenantContext
     public function getTenantId(): ?string
     {
         return $this->tenant?->id;
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        if ($this->subscription === null) {
+            return false;
+        }
+
+        return in_array($this->subscription->status, [
+            TenantSubscription::STATUS_ACTIVE,
+            TenantSubscription::STATUS_PAST_DUE,
+        ], true);
     }
 }

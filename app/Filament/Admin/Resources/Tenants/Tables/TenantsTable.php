@@ -59,6 +59,16 @@ class TenantsTable
                 TextColumn::make('active_modules_count')
                     ->label('Módulos activos')
                     ->sortable(),
+                TextColumn::make('subscription_status')
+                    ->label('Suscripción')
+                    ->state(fn ($record): string => (string) ($record->subscriptions()->latest('created_at')->value('status') ?? 'sin_suscripcion'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'past_due' => 'warning',
+                        'suspended', 'canceled' => 'danger',
+                        default => 'gray',
+                    }),
                 TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime()

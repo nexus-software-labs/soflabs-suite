@@ -31,6 +31,7 @@ $tenantMiddleware = [
     'web',
     config('tenancy.identification_middleware'),
     InjectTenantContext::class,
+    'tenant.subscription',
     PreventAccessFromCentralDomains::class,
 ];
 

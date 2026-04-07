@@ -10,6 +10,9 @@ use App\Filament\Admin\Resources\Plans\PlanResource;
 use App\Filament\Admin\Resources\Regions\RegionResource;
 use App\Filament\Admin\Resources\Tenants\TenantResource;
 use App\Filament\Admin\Resources\Users\UserResource;
+use App\Filament\Admin\Widgets\Admin\FailedSubscriptionCharges;
+use App\Filament\Admin\Widgets\Admin\SubscriptionAlerts;
+use App\Filament\Admin\Widgets\Admin\SubscriptionOverview;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -57,6 +60,9 @@ final class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
+                SubscriptionOverview::class,
+                SubscriptionAlerts::class,
+                FailedSubscriptionCharges::class,
                 AccountWidget::class,
                 FilamentInfoWidget::class,
             ])

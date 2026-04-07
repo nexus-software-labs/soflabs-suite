@@ -88,6 +88,34 @@ class TenantForm
                             ->label('Fecha de suscripción')
                             ->nullable()
                             ->seconds(false),
+                        Select::make('billing_cycle')
+                            ->label('Ciclo de facturación')
+                            ->options([
+                                'monthly' => 'Mensual',
+                                'yearly' => 'Anual',
+                            ])
+                            ->default('monthly')
+                            ->afterStateHydrated(function (Select $component): void {
+                                $record = $component->getRecord();
+                                if (! $record instanceof Tenant) {
+                                    return;
+                                }
+
+                                $billingCycle = $record->subscriptions()->latest('created_at')->value('billing_cycle');
+                                if (filled($billingCycle)) {
+                                    $component->state($billingCycle);
+                                }
+                            })
+                            ->dehydrated(false),
+                        Select::make('billing_gateway')
+                            ->label('Pasarela de cobro')
+                            ->options([
+                                'cybersource' => 'CyberSource',
+                                'transfer' => 'Transferencia',
+                                'cash' => 'Efectivo',
+                            ])
+                            ->default('cybersource')
+                            ->dehydrated(false),
                     ])
                     ->columns(2),
                 Section::make('Módulos activos')

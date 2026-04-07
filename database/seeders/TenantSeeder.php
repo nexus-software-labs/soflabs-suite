@@ -6,9 +6,11 @@ namespace Database\Seeders;
 
 use App\Models\Branch;
 use App\Models\Plan;
+use App\Models\Subscriptions\TenantSubscription;
 use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
+use App\Services\Subscriptions\SubscriptionService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -101,5 +103,38 @@ class TenantSeeder extends Seeder
                 'is_super_admin' => true,
             ],
         );
+
+        /** @var TenantSubscription|null $existingSubscription */
+        $existingSubscription = TenantSubscription::query()
+            ->where('tenant_id', $tenant->id)
+            ->latest('created_at')
+            ->first();
+
+        if ($existingSubscription === null) {
+            $createdSubscription = app(SubscriptionService::class)->createSubscription(
+                tenant: $tenant,
+                plan: $plan,
+                billingCycle: 'monthly',
+                gateway: null,
+            );
+            $createdSubscription->markAsPaid('seed');
+        } else {
+            $existingSubscription->update([
+                'plan_id' => $plan->id,
+                'status' => TenantSubscription::STATUS_ACTIVE,
+                'billing_cycle' => 'monthly',
+                'payment_status' => 'paid',
+                'grace_ends_at' => null,
+                'suspended_at' => null,
+                'retry_count' => 0,
+                'last_retry_at' => null,
+                'next_retry_at' => null,
+            ]);
+
+            if ($existingSubscription->next_billing_at === null || $existingSubscription->next_billing_at->isPast()) {
+                $existingSubscription->setBillingPeriodFromCycle();
+                $existingSubscription->save();
+            }
+        }
     }
 }

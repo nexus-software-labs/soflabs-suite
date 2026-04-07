@@ -20,6 +20,7 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 */
 
+use App\Http\Controllers\BillingWebhookController;
 use App\Http\Controllers\PrintOrderApiController;
 use App\Http\Controllers\PrintOrderController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,11 @@ $registerCentralWebRoutes = function (): void {
     });
 
     require __DIR__.'/settings.php';
+
+    Route::prefix('webhooks')->name('webhooks.')->group(function (): void {
+        Route::post('/billing/renewal/{gateway}', [BillingWebhookController::class, 'renewal'])
+            ->name('billing.renewal');
+    });
 };
 
 /*

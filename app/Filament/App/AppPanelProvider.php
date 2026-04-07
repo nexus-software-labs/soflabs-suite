@@ -12,6 +12,7 @@ use App\Filament\Admin\Resources\Promotions\PromotionResource;
 use App\Filament\Admin\Resources\Users\UserResource;
 use App\Filament\App\Plugins\TenantModulePluginsRegistration;
 use App\Http\Controllers\Auth\TenantAuthController;
+use App\Http\Middleware\CheckTenantSubscriptionStatus;
 use App\Http\Middleware\Filament\ShareTenantParameterForFilamentUrls;
 use App\Http\Middleware\InjectTenantContext;
 use App\Services\TenantContext;
@@ -88,6 +89,7 @@ final class AppPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                CheckTenantSubscriptionStatus::class,
                 PreventAccessFromCentralDomains::class,
             ])
             ->authMiddleware([

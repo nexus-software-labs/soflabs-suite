@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Subscriptions\TenantSubscription;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravelcm\Subscriptions\Traits\HasPlanSubscriptions;
 use Stancl\Tenancy\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDatabase;
 use Stancl\Tenancy\Database\Concerns\HasDomains;
@@ -20,6 +22,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     use HasDomains;
     use HasFactory;
+    use HasPlanSubscriptions;
 
     public function plan(): BelongsTo
     {
@@ -34,6 +37,19 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function modules(): HasMany
     {
         return $this->hasMany(TenantModule::class, 'tenant_id');
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(TenantSubscription::class, 'tenant_id');
+    }
+
+    public function activeSubscription(): HasMany
+    {
+        return $this->subscriptions()->whereIn('status', [
+            TenantSubscription::STATUS_ACTIVE,
+            TenantSubscription::STATUS_PAST_DUE,
+        ]);
     }
 
     public function hasModule(string $module): bool

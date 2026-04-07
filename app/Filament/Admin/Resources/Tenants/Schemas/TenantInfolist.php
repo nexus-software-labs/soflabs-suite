@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\Tenants\Schemas;
 
+use App\Models\Subscriptions\TenantSubscription;
 use App\Models\Tenant;
 use App\Models\User;
 use Filament\Infolists\Components\IconEntry;
@@ -55,6 +56,22 @@ class TenantInfolist
                         IconEntry::make('is_active')->label('Activo')->boolean(),
                         TextEntry::make('trial_ends_at')->label('Fin de prueba')->dateTime()->placeholder('—'),
                         TextEntry::make('subscribed_at')->label('Suscripción')->dateTime()->placeholder('—'),
+                        TextEntry::make('subscription_status')
+                            ->label('Estado suscripción')
+                            ->state(fn (Tenant $record): string => (string) ($record->subscriptions()->latest('created_at')->value('status') ?? 'sin_suscripcion'))
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                TenantSubscription::STATUS_ACTIVE => 'success',
+                                TenantSubscription::STATUS_PAST_DUE => 'warning',
+                                TenantSubscription::STATUS_SUSPENDED,
+                                TenantSubscription::STATUS_CANCELED => 'danger',
+                                default => 'gray',
+                            }),
+                        TextEntry::make('next_billing_at')
+                            ->label('Próximo cobro')
+                            ->state(fn (Tenant $record) => $record->subscriptions()->latest('created_at')->value('next_billing_at'))
+                            ->dateTime()
+                            ->placeholder('—'),
                     ])
                     ->columns(2),
                 Section::make('Resumen')

@@ -12,6 +12,7 @@ use App\Filament\Admin\Resources\Tenants\Schemas\TenantInfolist;
 use App\Filament\Admin\Resources\Tenants\Tables\TenantsTable;
 use App\Models\Tenant;
 use App\Models\TenantModule;
+use App\Services\Subscriptions\SubscriptionService;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -44,6 +45,17 @@ class TenantResource extends Resource
     public static function afterCreate(Tenant $record, array $rawFormState): void
     {
         ProvisionTenantAction::execute($record, $rawFormState);
+
+        $billingCycle = (string) ($rawFormState['billing_cycle'] ?? 'monthly');
+        $gateway = (string) ($rawFormState['billing_gateway'] ?? 'cybersource');
+        if ($record->plan !== null) {
+            app(SubscriptionService::class)->createSubscription(
+                tenant: $record,
+                plan: $record->plan,
+                billingCycle: $billingCycle,
+                gateway: $gateway,
+            );
+        }
     }
 
     /**
@@ -55,6 +67,18 @@ class TenantResource extends Resource
         $selected = is_array($selected) ? $selected : [];
 
         self::syncTenantModules($record, $selected);
+
+        $billingCycle = (string) ($rawFormState['billing_cycle'] ?? 'monthly');
+        $currentSubscription = $record->subscriptions()->latest('created_at')->first();
+        if ($record->plan !== null && $currentSubscription !== null) {
+            app(SubscriptionService::class)->changePlan(
+                subscription: $currentSubscription,
+                newPlan: $record->plan,
+                newBillingCycle: $billingCycle,
+                prorate: true,
+                gateway: (string) ($rawFormState['billing_gateway'] ?? 'cybersource'),
+            );
+        }
     }
 
     /**

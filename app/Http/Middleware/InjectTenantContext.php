@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\Branch;
+use App\Models\Subscriptions\TenantSubscription;
 use App\Models\Tenant;
 use App\Services\TenantContext;
 use Closure;
@@ -28,6 +29,10 @@ class InjectTenantContext
                     ->where('is_active', true)
                     ->pluck('module')
                     ->all();
+                $context->subscription = TenantSubscription::query()
+                    ->where('tenant_id', $tenant->id)
+                    ->latest('created_at')
+                    ->first();
             }
         }
 
