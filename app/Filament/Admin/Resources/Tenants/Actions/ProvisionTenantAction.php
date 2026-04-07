@@ -38,7 +38,7 @@ final class ProvisionTenantAction
                 }
 
                 $tenant->createDomain([
-                    'domain' => $tenant->getKey().'.'.$domain,
+                    'domain' => (string) $tenant->getKey(),
                 ]);
 
                 Branch::query()->create([

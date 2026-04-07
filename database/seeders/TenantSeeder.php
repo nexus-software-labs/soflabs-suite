@@ -36,13 +36,17 @@ class TenantSeeder extends Seeder
         });
 
         /*
-         * InitializeTenancyBySubdomain resuelve el inquilino por el primer segmento del host.
-         * Para acceder como demo.{APP_DOMAIN} (p. ej. demo.myapp.test), el registro debe ser "demo".
+         * Con {@see \Stancl\Tenancy\Middleware\InitializeTenancyBySubdomain}, el resolver
+         * compara solo el primer segmento del host (p. ej. "demo" en demo.software-labs.test).
+         * En `domains.domain` debe ir ese segmento, no el FQDN completo.
          */
-        $tenant->domains()->updateOrCreate(
-            ['domain' => 'demo'],
-            [],
-        );
+        $baseDomain = config('app.domain');
+        if (filled($baseDomain)) {
+            $tenant->domains()->updateOrCreate(
+                ['domain' => 'demo'],
+                ['tenant_id' => $tenant->id],
+            );
+        }
 
         Branch::query()->withTrashed()->where('tenant_id', $tenant->id)->forceDelete();
 
@@ -62,7 +66,7 @@ class TenantSeeder extends Seeder
 
         TenantModule::query()->where('tenant_id', $tenant->id)->delete();
 
-        foreach (['inventory', 'packages'] as $module) {
+        foreach (['inventory', 'packages', 'printing'] as $module) {
             TenantModule::query()->create([
                 'tenant_id' => $tenant->id,
                 'module' => $module,
@@ -71,8 +75,11 @@ class TenantSeeder extends Seeder
             ]);
         }
 
+        $superEmail = filled($baseDomain) ? 'super@'.$baseDomain : 'super@localhost';
+        $tenantAdminEmail = filled($baseDomain) ? 'admin@demo.'.$baseDomain : 'admin@demo.localhost';
+
         User::query()->updateOrCreate(
-            ['email' => 'admin@demo.myapp.test'],
+            ['email' => $tenantAdminEmail],
             [
                 'name' => 'Administrador Demo',
                 'password' => Hash::make('password'),
@@ -84,7 +91,7 @@ class TenantSeeder extends Seeder
         );
 
         User::query()->updateOrCreate(
-            ['email' => 'super@myapp.test'],
+            ['email' => $superEmail],
             [
                 'name' => 'Super administrador',
                 'password' => Hash::make('password'),

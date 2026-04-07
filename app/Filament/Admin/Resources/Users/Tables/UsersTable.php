@@ -7,6 +7,7 @@ use App\Models\User;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Facades\Filament;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -17,11 +18,17 @@ class UsersTable
 {
     public static function configure(Table $table): Table
     {
+        $isTenantPanel = Filament::getCurrentPanel()?->getId() === 'app';
+
         return $table
             ->modifyQueryUsing(
-                fn (Builder $query): Builder => $query->with(['tenant', 'branch']),
+                function (Builder $query) use ($isTenantPanel): Builder {
+                    return $isTenantPanel
+                        ? $query->with(['branch'])
+                        : $query->with(['tenant', 'branch']);
+                },
             )
-            ->columns([
+            ->columns(array_values(array_filter([
                 TextColumn::make('name')
                     ->label('Nombre')
                     ->searchable()
@@ -30,7 +37,7 @@ class UsersTable
                     ->label('Correo')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('tenant_display')
+                $isTenantPanel ? null : TextColumn::make('tenant_display')
                     ->label('Inquilino')
                     ->getStateUsing(function (User $record): string {
                         if ($record->tenant_id === null) {
@@ -48,7 +55,7 @@ class UsersTable
                 IconColumn::make('is_tenant_admin')
                     ->label('Admin inquilino')
                     ->boolean(),
-                IconColumn::make('is_super_admin')
+                $isTenantPanel ? null : IconColumn::make('is_super_admin')
                     ->label('Superadmin')
                     ->boolean(),
                 TextColumn::make('last_seen_at')
@@ -56,9 +63,9 @@ class UsersTable
                     ->dateTime()
                     ->sortable()
                     ->placeholder('—'),
-            ])
-            ->filters([
-                SelectFilter::make('tenant_id')
+            ])))
+            ->filters(array_values(array_filter([
+                $isTenantPanel ? null : SelectFilter::make('tenant_id')
                     ->label('Inquilino')
                     ->relationship(
                         name: 'tenant',
@@ -75,7 +82,10 @@ class UsersTable
                     ->preload(),
                 SelectFilter::make('role')
                     ->label('Rol')
-                    ->options([
+                    ->options($isTenantPanel ? [
+                        'tenant_admin' => 'Administrador de inquilino',
+                        'miembro' => 'Usuario de inquilino',
+                    ] : [
                         'superadmin' => 'Superadministrador',
                         'tenant_admin' => 'Administrador de inquilino',
                         'miembro' => 'Usuario de inquilino',
@@ -97,7 +107,7 @@ class UsersTable
                             default => null,
                         };
                     }),
-            ])
+            ])))
             ->recordActions([
                 EditAction::make(),
             ])

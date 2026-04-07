@@ -8,6 +8,7 @@ use App\Models\Scopes\TenantScope;
 use App\Services\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 trait HasTenantScope
 {
@@ -17,7 +18,24 @@ trait HasTenantScope
 
     protected static function bootHasTenantScope(): void
     {
-        static::addGlobalScope(new TenantScope());
+        static::addGlobalScope(new TenantScope);
+
+        static::creating(function (Model $model): void {
+            if (filled($model->getAttribute('tenant_id'))) {
+                return;
+            }
+
+            if (! function_exists('tenancy') || ! tenancy()->initialized) {
+                return;
+            }
+
+            $tenant = tenant();
+            if ($tenant === null) {
+                return;
+            }
+
+            $model->setAttribute('tenant_id', $tenant->getTenantKey());
+        });
     }
 
     protected static function newFactory()

@@ -21,11 +21,11 @@ class BranchScope implements Scope
      */
     public static function withoutBranchScope(callable $callback): mixed
     {
-        ++self::$ignoreDepth;
+        self::$ignoreDepth++;
         try {
             return $callback();
         } finally {
-            --self::$ignoreDepth;
+            self::$ignoreDepth--;
         }
     }
 

@@ -20,7 +20,7 @@ trait HasBranchScope
 
     protected static function bootHasBranchScope(): void
     {
-        static::addGlobalScope(new BranchScope());
+        static::addGlobalScope(new BranchScope);
     }
 
     protected static function newFactory()

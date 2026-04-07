@@ -4,6 +4,7 @@ namespace App\Filament\Admin\Resources\Users\Schemas;
 
 use App\Models\Tenant;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -17,6 +18,8 @@ class UserForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $isTenantPanel = Filament::getCurrentPanel()?->getId() === 'app';
+
         return $schema
             ->components([
                 Section::make('Datos del usuario')
@@ -61,13 +64,27 @@ class UserForm
                             ->live()
                             ->nullable()
                             ->helperText('Vacío = superadministrador (sin inquilino asignado).')
-                            ->afterStateUpdated(fn (Set $set) => $set('branch_id', null)),
+                            ->afterStateUpdated(fn (Set $set) => $set('branch_id', null))
+                            ->hidden($isTenantPanel),
                         Select::make('branch_id')
                             ->label('Sucursal')
                             ->relationship(
                                 name: 'branch',
                                 titleAttribute: 'name',
-                                modifyQueryUsing: function (Builder $query, Get $get): Builder {
+                                modifyQueryUsing: function (Builder $query, Get $get) use ($isTenantPanel): Builder {
+                                    if ($isTenantPanel) {
+                                        $tenantKey = tenant()?->getTenantKey();
+
+                                        if (! filled($tenantKey)) {
+                                            return $query->whereRaw('0 = 1');
+                                        }
+
+                                        return $query->where(
+                                            $query->getModel()->getTable().'.tenant_id',
+                                            $tenantKey,
+                                        );
+                                    }
+
                                     $tenantId = $get('tenant_id');
 
                                     if (! filled($tenantId)) {
@@ -88,7 +105,8 @@ class UserForm
                             ->default(false),
                         Toggle::make('is_super_admin')
                             ->label('Superadministrador')
-                            ->default(false),
+                            ->default(false)
+                            ->hidden($isTenantPanel),
                         Toggle::make('is_active')
                             ->label('Activo')
                             ->default(true),

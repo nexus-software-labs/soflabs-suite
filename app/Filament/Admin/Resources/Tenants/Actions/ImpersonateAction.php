@@ -16,7 +16,7 @@ final class ImpersonateAction
             ->label('Abrir tenant')
             ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
             ->url(fn (Tenant $record): string => sprintf(
-                'https://%s.%s/dashboard',
+                'https://%s.%s/panel/dashboard',
                 $record->getKey(),
                 config('app.domain')
             ))

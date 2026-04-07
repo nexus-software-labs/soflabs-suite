@@ -35,7 +35,7 @@ class TenantResource extends Resource
      */
     public static function moduleKeys(): array
     {
-        return ['inventario', 'logistica', 'impresiones'];
+        return ['inventory', 'packages', 'printing'];
     }
 
     /**

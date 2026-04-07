@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin;
 
+use App\Filament\Admin\Resources\Countries\CountryResource;
+use App\Filament\Admin\Resources\CustomerTiers\CustomerTierResource;
+use App\Filament\Admin\Resources\Plans\PlanResource;
+use App\Filament\Admin\Resources\Regions\RegionResource;
+use App\Filament\Admin\Resources\Tenants\TenantResource;
+use App\Filament\Admin\Resources\Users\UserResource;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -37,7 +43,14 @@ final class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
+            ->resources([
+                PlanResource::class,
+                TenantResource::class,
+                RegionResource::class,
+                CountryResource::class,
+                CustomerTierResource::class,
+                UserResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->pages([
                 Dashboard::class,

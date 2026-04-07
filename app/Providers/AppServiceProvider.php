@@ -2,15 +2,17 @@
 
 namespace App\Providers;
 
-use App\Models\Branch;
-use App\Observers\BranchObserver;
 use App\Http\Controllers\Auth\TenantAuthController;
+use App\Http\Middleware\Filament\PrepareFilamentPanelContext;
 use App\Http\Responses\Filament\AppPanelLogoutResponse;
+use App\Models\Branch;
+use App\Models\Media;
 use App\Models\User;
-use Filament\Auth\Http\Controllers\LogoutController as FilamentLogoutController;
-use Filament\Auth\Http\Responses\Contracts\LogoutResponse as FilamentLogoutResponseContract;
+use App\Observers\BranchObserver;
 use App\Services\TenantContext;
 use Carbon\CarbonImmutable;
+use Filament\Auth\Http\Controllers\LogoutController as FilamentLogoutController;
+use Filament\Auth\Http\Responses\Contracts\LogoutResponse as FilamentLogoutResponseContract;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
+        config(['media-library.media_model' => Media::class]);
+
         Branch::observe(BranchObserver::class);
 
         Gate::define('isAdmin', function (User $user): bool {
@@ -56,7 +60,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->make(Router::class)
-            ->aliasMiddleware('panel', \App\Http\Middleware\Filament\PrepareFilamentPanelContext::class);
+            ->aliasMiddleware('panel', PrepareFilamentPanelContext::class);
     }
 
     /**

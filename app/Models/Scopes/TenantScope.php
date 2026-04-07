@@ -21,11 +21,11 @@ class TenantScope implements Scope
      */
     public static function withoutTenantScope(callable $callback): mixed
     {
-        ++self::$ignoreDepth;
+        self::$ignoreDepth++;
         try {
             return $callback();
         } finally {
-            --self::$ignoreDepth;
+            self::$ignoreDepth--;
         }
     }
 

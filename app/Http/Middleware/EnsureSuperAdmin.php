@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 final class EnsureSuperAdmin
@@ -20,7 +21,13 @@ final class EnsureSuperAdmin
         }
 
         if (! $request->user()->is_super_admin) {
-            return redirect('/')->with('error', 'No autorizado.');
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()
+                ->route('filament.admin.auth.login')
+                ->with('error', 'El panel landlord solo admite cuentas con rol de super administrador (is_super_admin).');
         }
 
         return $next($request);

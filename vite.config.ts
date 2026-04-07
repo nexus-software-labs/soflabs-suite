@@ -11,7 +11,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.tsx',
-                'resources/js/pages/Auth/Login.tsx',
+                'resources/js/pages/auth/login.tsx',
             ],
             refresh: true,
         }),

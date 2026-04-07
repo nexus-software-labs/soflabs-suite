@@ -1,16 +1,33 @@
 import { Head, useForm } from '@inertiajs/react';
+import TextLink from '@/components/text-link';
+import { register } from '@/routes';
+import { request as passwordRequest } from '@/routes/password';
 
-type Tenant = {
+type TenantInfo = {
     name: string;
     company_name: string;
 };
 
 type Props = {
-    tenant: Tenant;
+    tenant?: TenantInfo;
+    /** `public` = /login (usuarios); `panel` = /panel/login (backoffice Filament). */
+    loginContext?: 'public' | 'panel';
+    canResetPassword?: boolean;
+    canRegister?: boolean;
+    status?: string;
 };
 
-export default function Login({ tenant }: Props) {
-    const title = tenant.company_name || tenant.name || 'Acceso';
+export default function Login({
+    tenant,
+    loginContext = 'public',
+    canResetPassword,
+    canRegister,
+    status,
+}: Props) {
+    const isTenantContext = tenant !== undefined;
+    const displayName = isTenantContext
+        ? tenant.company_name || tenant.name || 'Acceso'
+        : import.meta.env.VITE_APP_NAME || 'Laravel';
 
     const { data, setData, post, processing, errors } = useForm({
         email: '',
@@ -23,18 +40,29 @@ export default function Login({ tenant }: Props) {
         post('/login');
     }
 
+    const tenantSubtitle =
+        loginContext === 'panel'
+            ? 'Acceso al panel de administración'
+            : 'Inicia sesión en tu espacio de trabajo';
+
     return (
         <>
-            <Head title={title} />
+            <Head title={isTenantContext ? displayName : 'Iniciar sesión'} />
 
             <div className="flex min-h-svh flex-col items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-zinc-950">
                 <div className="w-full max-w-sm space-y-8 rounded-lg border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                    {status && (
+                        <p className="text-center text-sm font-medium text-green-600 dark:text-green-400">
+                            {status}
+                        </p>
+                    )}
+
                     <div className="space-y-1 text-center">
                         <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-                            {tenant.company_name || tenant.name}
+                            {isTenantContext ? displayName : 'Iniciar sesión'}
                         </h1>
                         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                            Inicia sesión en tu espacio de trabajo
+                            {isTenantContext ? tenantSubtitle : 'Accede con tu cuenta'}
                         </p>
                     </div>
 
@@ -63,12 +91,22 @@ export default function Login({ tenant }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                            >
-                                Contraseña
-                            </label>
+                            <div className="flex items-center justify-between gap-2">
+                                <label
+                                    htmlFor="password"
+                                    className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                                >
+                                    Contraseña
+                                </label>
+                                {!isTenantContext && canResetPassword && (
+                                    <TextLink
+                                        href={passwordRequest.url()}
+                                        className="text-xs text-zinc-600 underline dark:text-zinc-400"
+                                    >
+                                        ¿Olvidaste tu contraseña?
+                                    </TextLink>
+                                )}
+                            </div>
                             <input
                                 id="password"
                                 type="password"
@@ -109,6 +147,15 @@ export default function Login({ tenant }: Props) {
                             {processing ? 'Entrando…' : 'Entrar'}
                         </button>
                     </form>
+
+                    {!isTenantContext && canRegister && (
+                        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+                            ¿No tienes cuenta?{' '}
+                            <TextLink href={register.url()} tabIndex={5}>
+                                Registrarse
+                            </TextLink>
+                        </p>
+                    )}
                 </div>
             </div>
         </>

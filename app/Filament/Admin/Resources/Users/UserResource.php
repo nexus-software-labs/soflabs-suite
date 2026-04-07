@@ -9,10 +9,12 @@ use App\Filament\Admin\Resources\Users\Schemas\UserForm;
 use App\Filament\Admin\Resources\Users\Tables\UsersTable;
 use App\Models\User;
 use BackedEnum;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserResource extends Resource
 {
@@ -27,6 +29,23 @@ class UserResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static ?int $navigationSort = 15;
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        if (Filament::getCurrentPanel()?->getId() === 'app') {
+            $tenant = tenant();
+
+            if ($tenant !== null) {
+                $query->where($query->getModel()->getTable().'.tenant_id', $tenant->getTenantKey());
+            }
+
+            $query->where($query->getModel()->getTable().'.is_super_admin', false);
+        }
+
+        return $query;
+    }
 
     public static function form(Schema $schema): Schema
     {

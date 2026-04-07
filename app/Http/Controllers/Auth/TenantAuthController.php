@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantContext;
+use Filament\Auth\Http\Controllers\LogoutController;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as LogoutResponseContract;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,13 +18,31 @@ use Inertia\Response;
 
 class TenantAuthController extends Controller
 {
+    private const string PANEL_HOME = '/panel/dashboard';
+
     /**
-     * Muestra el formulario de acceso Inertia para el inquilino actual.
+     * Login en la raíz del tenant (/login): usuarios del espacio (no solo staff).
+     */
+    public function showPublicLogin(TenantContext $tenantContext): Response|RedirectResponse
+    {
+        return $this->renderTenantLoginPage($tenantContext, 'public');
+    }
+
+    /**
+     * Login del panel Filament (/panel/login) — backoffice del tenant.
      */
     public function showLogin(TenantContext $tenantContext): Response|RedirectResponse
     {
+        return $this->renderTenantLoginPage($tenantContext, 'panel');
+    }
+
+    /**
+     * @param  'public'|'panel'  $loginContext
+     */
+    private function renderTenantLoginPage(TenantContext $tenantContext, string $loginContext): Response|RedirectResponse
+    {
         if (Auth::check()) {
-            return redirect('/dashboard');
+            return redirect(self::PANEL_HOME);
         }
 
         $tenant = $tenantContext->tenant;
@@ -31,11 +50,12 @@ class TenantAuthController extends Controller
 
         $tenant->loadMissing('domains');
 
-        return Inertia::render('Auth/Login', [
+        return Inertia::render('auth/login', [
             'tenant' => [
                 'name' => $tenant->domains->first()?->domain ?? $tenant->id,
                 'company_name' => $tenant->company_name ?? '',
             ],
+            'loginContext' => $loginContext,
         ]);
     }
 
@@ -77,11 +97,11 @@ class TenantAuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended('/dashboard');
+        return redirect()->intended(self::PANEL_HOME);
     }
 
     /**
-     * Cierra la sesión web. Usado por {@see \Filament\Auth\Http\Controllers\LogoutController}
+     * Cierra la sesión web. Usado por {@see LogoutController}
      * en paneles Filament (mismo guard web).
      */
     public function logout(Request $request): LogoutResponseContract

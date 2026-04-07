@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 use App\Models\Tenant;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 afterEach(function (): void {
     if (tenancy()->initialized) {
@@ -22,6 +23,20 @@ function tenantHost(string $subdomain): string
     return $subdomain.'.'.config('app.domain');
 }
 
+test('tenant panel login page renders with panel loginContext', function () {
+    $tenant = Tenant::factory()->create();
+    $tenant->domains()->create(['domain' => 'demo']);
+
+    $response = $this->get('http://'.tenantHost('demo').'/panel/login');
+
+    $response->assertOk();
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('auth/login')
+        ->where('loginContext', 'panel')
+    );
+});
+
 test('tenant inertia login page renders with tenant props', function () {
     $tenant = Tenant::factory()->create([
         'company_name' => 'Mi Empresa SL',
@@ -33,7 +48,8 @@ test('tenant inertia login page renders with tenant props', function () {
     $response->assertOk();
 
     $response->assertInertia(fn (Assert $page) => $page
-        ->component('Auth/Login')
+        ->component('auth/login')
+        ->where('loginContext', 'public')
         ->has('tenant', fn (Assert $t) => $t
             ->where('company_name', 'Mi Empresa SL')
             ->where('name', 'demo')
@@ -94,7 +110,7 @@ test('tenant login succeeds and redirects to dashboard', function () {
         'password' => 'password',
     ]);
 
-    $response->assertRedirect('/dashboard');
+    $response->assertRedirect('/panel/dashboard');
     $this->assertAuthenticated();
 });
 
@@ -108,8 +124,8 @@ test('tenant logout ends session and redirects to login', function () {
         'tenant_id' => $tenant->id,
     ]);
 
-    $response = $this->actingAs($user)->post('http://'.tenantHost('demo').'/logout');
+    $response = $this->actingAs($user)->post('http://'.tenantHost('demo').'/panel/logout');
 
-    $response->assertRedirect('/login');
+    $response->assertRedirect('/panel/login');
     $this->assertGuest();
 });

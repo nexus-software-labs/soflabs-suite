@@ -18,6 +18,7 @@ class BranchFactory extends Factory
     {
         return [
             'tenant_id' => Tenant::factory(),
+            'country_id' => null,
             'name' => fake()->company(),
             'code' => fake()->optional()->bothify('???##'),
             'address' => fake()->optional()->streetAddress(),

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\HasTenantScope;
+use Database\Factories\TenantModuleFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class TenantModule extends Model
 {
-    /** @use \Illuminate\Database\Eloquent\Factories\HasFactory<\Database\Factories\TenantModuleFactory> */
+    /** @use HasFactory<TenantModuleFactory> */
     use HasTenantScope, HasUlids;
 
     protected $fillable = [

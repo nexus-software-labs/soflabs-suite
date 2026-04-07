@@ -167,9 +167,22 @@ return [
     | to the server if the browser has a HTTPS connection. This will keep
     | the cookie from being sent to you when it can't be done securely.
     |
+    | Cuando este valor es null, Symfony (Response::prepare) puede marcar las
+    | cookies como Secure si la petición se considera HTTPS (p. ej. Herd +
+    | TrustProxies). En local, mezclar http/https o APP_URL=http con el sitio
+    | en https hace que el navegador no reenvíe la cookie en POST Livewire → 419.
+    | En local/testing usamos false salvo que definas SESSION_SECURE_COOKIE.
+    |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => match (true) {
+        ! is_null(env('SESSION_SECURE_COOKIE')) && env('SESSION_SECURE_COOKIE') !== '' => filter_var(
+            env('SESSION_SECURE_COOKIE'),
+            FILTER_VALIDATE_BOOLEAN,
+        ),
+        in_array((string) env('APP_ENV', 'production'), ['local', 'testing'], true) => false,
+        default => null,
+    },
 
     /*
     |--------------------------------------------------------------------------

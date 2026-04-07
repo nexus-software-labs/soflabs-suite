@@ -4,8 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\App;
 
-use App\Http\Controllers\Auth\TenantAuthController;
+use App\Filament\Admin\Resources\Branches\BranchResource;
+use App\Filament\Admin\Resources\Customers\CustomerResource;
+use App\Filament\Admin\Resources\Payments\PaymentResource;
+use App\Filament\Admin\Resources\PrintOrders\PrintOrderResource;
+use App\Filament\Admin\Resources\Promotions\PromotionResource;
+use App\Filament\Admin\Resources\Users\UserResource;
 use App\Filament\App\Plugins\TenantModulePluginsRegistration;
+use App\Http\Controllers\Auth\TenantAuthController;
+use App\Http\Middleware\Filament\ShareTenantParameterForFilamentUrls;
+use App\Http\Middleware\InjectTenantContext;
+use App\Services\TenantContext;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,9 +36,9 @@ final class AppPanelProvider extends PanelProvider
     /**
      * {@inheritDoc}
      *
-     * La resolución de {@see \App\Services\TenantContext} y el registro condicional de plugins
+     * La resolución de {@see TenantContext} y el registro condicional de plugins
      * por módulo activo ocurre al hacer boot del panel (tras tenancy e
-     * {@see \App\Http\Middleware\InjectTenantContext}), vía
+     * {@see InjectTenantContext}), vía
      * {@see TenantModulePluginsRegistration}.
      */
     public function register(): void
@@ -46,7 +55,7 @@ final class AppPanelProvider extends PanelProvider
 
         $panel = $panel
             ->id('app')
-            ->path('')
+            ->path('panel')
             ->homeUrl('/dashboard')
             ->login([TenantAuthController::class, 'showLogin'])
             // La ruta POST de cierre de sesión se registra junto al login (no existe ->logout() en Panel v5).
@@ -56,11 +65,19 @@ final class AppPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
             ])
             ->plugin(new TenantModulePluginsRegistration)
-            ->discoverResources(in: app_path('Filament/App/Resources'), for: 'App\\Filament\\App\\Resources')
+            ->resources([
+                UserResource::class,
+                BranchResource::class,
+                CustomerResource::class,
+                PrintOrderResource::class,
+                PaymentResource::class,
+                PromotionResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\\Filament\\App\\Pages')
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\\Filament\\App\\Widgets')
             ->widgets([])
             ->middleware([
+                ShareTenantParameterForFilamentUrls::class,
                 InitializeTenancyBySubdomain::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

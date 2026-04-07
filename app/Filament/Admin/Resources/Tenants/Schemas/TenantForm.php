@@ -95,9 +95,9 @@ class TenantForm
                         CheckboxList::make('active_modules')
                             ->label('Módulos')
                             ->options([
-                                'inventario' => 'Inventario',
-                                'logistica' => 'Logística',
-                                'impresiones' => 'Impresiones',
+                                'inventory' => 'Inventario',
+                                'packages' => 'Paquetería / logística',
+                                'printing' => 'Impresiones',
                             ])
                             ->columns(3)
                             ->dehydrated(false)

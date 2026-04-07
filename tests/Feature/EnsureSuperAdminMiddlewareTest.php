@@ -13,8 +13,11 @@ test('non super admin is redirected from filament admin with flash message', fun
 
     $this->actingAs($user)
         ->get(route('filament.admin.pages.dashboard'))
-        ->assertRedirect('/')
-        ->assertSessionHas('error', 'No autorizado.');
+        ->assertRedirect(route('filament.admin.auth.login'))
+        ->assertSessionHas(
+            'error',
+            'El panel landlord solo admite cuentas con rol de super administrador (is_super_admin).',
+        );
 });
 
 test('super admin can access filament admin dashboard', function () {

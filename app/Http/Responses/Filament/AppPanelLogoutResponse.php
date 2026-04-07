@@ -10,8 +10,8 @@ use Illuminate\Http\RedirectResponse;
 
 /**
  * Tras el logout, Filament intenta resolver la URL de login; en el panel app
- * el dominio incluye {tenant} y {@see \Filament\Facades\Filament::getLoginUrl()}
- * puede fallar sin parámetros. Redirigimos a /login en el mismo host.
+ * el dominio incluye {tenant} y {@see Filament::getLoginUrl()}
+ * puede fallar sin parámetros. Redirigimos al login del panel en el mismo host.
  */
 final class AppPanelLogoutResponse implements LogoutResponseContract
 {
@@ -20,7 +20,7 @@ final class AppPanelLogoutResponse implements LogoutResponseContract
         $panel = Filament::getCurrentPanel();
 
         if ($panel !== null && $panel->getId() === 'app') {
-            return redirect('/login');
+            return redirect('/panel/login');
         }
 
         return redirect()->to(

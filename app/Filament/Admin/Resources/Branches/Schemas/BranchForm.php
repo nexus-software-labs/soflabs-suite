@@ -36,6 +36,19 @@ class BranchForm
                             ->searchable(['company_name', 'id'])
                             ->preload()
                             ->required(),
+                        Select::make('country_id')
+                            ->label('País (catálogo)')
+                            ->relationship(
+                                name: 'countryModel',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query): Builder => $query
+                                    ->where('is_active', true)
+                                    ->orderBy('name'),
+                            )
+                            ->searchable(['name', 'code'])
+                            ->preload()
+                            ->nullable()
+                            ->helperText('Opcional: enlaza con el catálogo para promociones por país/región.'),
                         TextInput::make('name')
                             ->label('Nombre')
                             ->required()

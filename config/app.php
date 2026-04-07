@@ -60,10 +60,26 @@ return [
     |--------------------------------------------------------------------------
     |
     | Usado por Filament admin y por patrones de subdominio tenant.*.domain.
+    | Solo el hostname (p. ej. software-labs.test), sin esquema ni rutas.
+    | Si APP_DOMAIN viene como URL por error, se extrae el host.
     |
     */
 
-    'domain' => env('APP_DOMAIN') ?: (parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost'),
+    'domain' => (static function (): string {
+        $raw = env('APP_DOMAIN');
+        if (filled($raw)) {
+            $raw = trim((string) $raw);
+            if (str_contains($raw, '://')) {
+                $host = parse_url($raw, PHP_URL_HOST);
+
+                return is_string($host) && $host !== '' ? $host : $raw;
+            }
+
+            return $raw;
+        }
+
+        return parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost';
+    })(),
 
     /*
     |--------------------------------------------------------------------------
