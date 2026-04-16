@@ -14,8 +14,8 @@ use App\Filament\App\Plugins\TenantModulePluginsRegistration;
 use App\Http\Controllers\Auth\TenantAuthController;
 use App\Http\Middleware\CheckTenantSubscriptionStatus;
 use App\Http\Middleware\Filament\ShareTenantParameterForFilamentUrls;
-use App\Http\Middleware\InjectTenantContext;
-use App\Services\TenantContext;
+use App\Modules\Inventory\Filament\InventoryPlugin;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -37,10 +37,10 @@ final class AppPanelProvider extends PanelProvider
     /**
      * {@inheritDoc}
      *
-     * La resolución de {@see TenantContext} y el registro condicional de plugins
-     * por módulo activo ocurre al hacer boot del panel (tras tenancy e
-     * {@see InjectTenantContext}), vía
-     * {@see TenantModulePluginsRegistration}.
+     * Los plugins de módulo (widgets, etc.) se aplican en el boot del panel vía
+     * {@see TenantModulePluginsRegistration}. Los recursos de inventario se
+     * declaran aquí para que sus rutas existan al registrar rutas de Filament;
+     * navegación y acceso siguen condicionados al módulo en cada recurso.
      */
     public function register(): void
     {
@@ -65,15 +65,19 @@ final class AppPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Blue,
             ])
+            ->plugin(
+                FilamentShieldPlugin::make()
+                    ->scopeToTenant(true)
+            )
             ->plugin(new TenantModulePluginsRegistration)
-            ->resources([
+            ->resources(array_merge([
                 UserResource::class,
                 BranchResource::class,
                 CustomerResource::class,
                 PrintOrderResource::class,
                 PaymentResource::class,
                 PromotionResource::class,
-            ])
+            ], InventoryPlugin::resourceClasses()))
             ->discoverPages(in: app_path('Filament/App/Pages'), for: 'App\\Filament\\App\\Pages')
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\\Filament\\App\\Widgets')
             ->widgets([])

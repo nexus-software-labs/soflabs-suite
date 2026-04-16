@@ -2,16 +2,19 @@
 
 namespace App\Filament\Admin\Resources\Tenants;
 
-use App\Filament\Admin\Resources\Tenants\Actions\ProvisionTenantAction;
 use App\Filament\Admin\Resources\Tenants\Pages\CreateTenant;
 use App\Filament\Admin\Resources\Tenants\Pages\EditTenant;
 use App\Filament\Admin\Resources\Tenants\Pages\ListTenants;
 use App\Filament\Admin\Resources\Tenants\Pages\ViewTenant;
+use App\Filament\Admin\Resources\Tenants\RelationManagers\DomainsRelationManager;
+use App\Filament\Admin\Resources\Tenants\RelationManagers\ModulesRelationManager;
+use App\Filament\Admin\Resources\Tenants\RelationManagers\SubscriptionsRelationManager;
 use App\Filament\Admin\Resources\Tenants\Schemas\TenantForm;
 use App\Filament\Admin\Resources\Tenants\Schemas\TenantInfolist;
 use App\Filament\Admin\Resources\Tenants\Tables\TenantsTable;
 use App\Models\Tenant;
 use App\Models\TenantModule;
+use App\Services\Onboarding\TenantOnboardingOrchestrator;
 use App\Services\Subscriptions\SubscriptionService;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -44,18 +47,9 @@ class TenantResource extends Resource
      */
     public static function afterCreate(Tenant $record, array $rawFormState): void
     {
-        ProvisionTenantAction::execute($record, $rawFormState);
+        $record->loadMissing('plan');
 
-        $billingCycle = (string) ($rawFormState['billing_cycle'] ?? 'monthly');
-        $gateway = (string) ($rawFormState['billing_gateway'] ?? 'cybersource');
-        if ($record->plan !== null) {
-            app(SubscriptionService::class)->createSubscription(
-                tenant: $record,
-                plan: $record->plan,
-                billingCycle: $billingCycle,
-                gateway: $gateway,
-            );
-        }
+        app(TenantOnboardingOrchestrator::class)->provisionAfterTenantCreated($record, $rawFormState);
     }
 
     /**
@@ -122,7 +116,11 @@ class TenantResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            DomainsRelationManager::class,
+            SubscriptionsRelationManager::class,
+            ModulesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

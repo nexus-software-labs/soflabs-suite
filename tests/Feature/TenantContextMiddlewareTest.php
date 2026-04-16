@@ -27,6 +27,6 @@ test('check module access aborts with 403 when tenancy is not initialized', func
         $this->fail('Expected HttpException');
     } catch (HttpException $e) {
         expect($e->getStatusCode())->toBe(403)
-            ->and($e->getMessage())->toBe('Módulo no disponible en tu plan.');
+            ->and($e->getMessage())->toBe('Module is not available in your current plan.');
     }
 });

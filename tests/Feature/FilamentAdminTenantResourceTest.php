@@ -11,13 +11,17 @@ use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 
-uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     Event::fake();
+    Role::findOrCreate('panel_user', 'web');
+    Role::findOrCreate('inventory_admin', 'web');
 });
 
 test('crear inquilino desde Filament sincroniza tenant_modules', function (): void {
@@ -35,7 +39,8 @@ test('crear inquilino desde Filament sincroniza tenant_modules', function (): vo
             'plan_id' => $plan->getKey(),
             'db_mode' => 'shared',
             'is_active' => true,
-            'active_modules' => ['inventario', 'impresiones'],
+            'billing_gateway' => 'cash',
+            'active_modules' => ['inventory', 'printing'],
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -45,9 +50,9 @@ test('crear inquilino desde Filament sincroniza tenant_modules', function (): vo
     expect($tenant)->not->toBeNull()
         ->and($tenant->company_name)->toBe('Empresa Prueba');
 
-    expect((bool) TenantModule::query()->where('tenant_id', 'filament-tenant-a')->where('module', 'inventario')->value('is_active'))->toBeTrue()
-        ->and((bool) TenantModule::query()->where('tenant_id', 'filament-tenant-a')->where('module', 'logistica')->value('is_active'))->toBeFalse()
-        ->and((bool) TenantModule::query()->where('tenant_id', 'filament-tenant-a')->where('module', 'impresiones')->value('is_active'))->toBeTrue();
+    expect((bool) TenantModule::query()->where('tenant_id', 'filament-tenant-a')->where('module', 'inventory')->value('is_active'))->toBeTrue()
+        ->and((bool) TenantModule::query()->where('tenant_id', 'filament-tenant-a')->where('module', 'packages')->value('is_active'))->toBeFalse()
+        ->and((bool) TenantModule::query()->where('tenant_id', 'filament-tenant-a')->where('module', 'printing')->value('is_active'))->toBeTrue();
 
     expect($tenant->domains()->count())->toBe(1)
         ->and(Branch::query()->where('tenant_id', 'filament-tenant-a')->where('code', 'MAIN')->where('is_main', true)->exists())->toBeTrue();
@@ -66,7 +71,7 @@ test('editar inquilino desde Filament actualiza tenant_modules', function (): vo
 
     TenantModule::query()->create([
         'tenant_id' => $tenant->id,
-        'module' => 'inventario',
+        'module' => 'inventory',
         'is_active' => true,
         'activated_at' => now(),
     ]);
@@ -85,11 +90,49 @@ test('editar inquilino desde Filament actualiza tenant_modules', function (): vo
             'subscribed_at' => $tenant->subscribed_at,
             'phone' => $tenant->phone,
             'country' => $tenant->country,
-            'active_modules' => ['logistica'],
+            'active_modules' => ['packages'],
         ])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect((bool) TenantModule::query()->where('tenant_id', $tenant->id)->where('module', 'inventario')->value('is_active'))->toBeFalse()
-        ->and((bool) TenantModule::query()->where('tenant_id', $tenant->id)->where('module', 'logistica')->value('is_active'))->toBeTrue();
+    expect((bool) TenantModule::query()->where('tenant_id', $tenant->id)->where('module', 'inventory')->value('is_active'))->toBeFalse()
+        ->and((bool) TenantModule::query()->where('tenant_id', $tenant->id)->where('module', 'packages')->value('is_active'))->toBeTrue();
+});
+
+test('crear inquilino con administrador inicial crea usuario tenant admin con roles', function (): void {
+    $plan = Plan::factory()->create();
+    $admin = User::factory()->superAdmin()->create();
+
+    $this->actingAs($admin);
+
+    Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+    Livewire::test(CreateTenant::class)
+        ->fillForm([
+            'id' => 'filament-tenant-admin',
+            'company_name' => 'Empresa Con Admin',
+            'plan_id' => $plan->getKey(),
+            'db_mode' => 'shared',
+            'is_active' => true,
+            'billing_gateway' => 'cash',
+            'active_modules' => ['inventory'],
+            'admin_name' => 'Admin Inicial',
+            'admin_email' => 'tenant-admin@example.com',
+            'admin_password' => 'password12',
+            'admin_password_confirmation' => 'password12',
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $tenantUser = User::query()->where('email', 'tenant-admin@example.com')->first();
+
+    expect($tenantUser)->not->toBeNull()
+        ->and($tenantUser->tenant_id)->toBe('filament-tenant-admin')
+        ->and($tenantUser->is_tenant_admin)->toBeTrue()
+        ->and($tenantUser->hasRole('panel_user'))->toBeTrue()
+        ->and($tenantUser->hasRole('inventory_admin'))->toBeTrue();
+
+    expect($tenantUser->branch_id)->toBe(
+        Branch::query()->where('tenant_id', 'filament-tenant-admin')->where('is_main', true)->value('id')
+    );
 });

@@ -19,7 +19,7 @@ class CheckModuleAccess
         $context = app(TenantContext::class);
 
         if (! tenancy()->initialized || ! in_array($module, $context->modules, true)) {
-            abort(403, 'Módulo no disponible en tu plan.');
+            abort(403, 'Module is not available in your current plan.');
         }
 
         return $next($request);

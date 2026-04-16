@@ -14,6 +14,7 @@ use App\Filament\Admin\Widgets\Admin\FailedSubscriptionCharges;
 use App\Filament\Admin\Widgets\Admin\SubscriptionAlerts;
 use App\Filament\Admin\Widgets\Admin\SubscriptionOverview;
 use App\Http\Middleware\EnsureSuperAdmin;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -46,6 +47,7 @@ final class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->plugin(FilamentShieldPlugin::make())
             ->resources([
                 PlanResource::class,
                 TenantResource::class,

@@ -64,29 +64,17 @@ $registerTenantHttpRoutes = function (): void {
      * --------------------------------------------------------------------------
      */
 
-    Route::prefix('inventory')
-        ->name('inventory.')
-        ->middleware('module:inventory')
-        ->group(function (): void {
-            Route::get('/', fn () => Inertia::render('Inventory/Dashboard'))->name('dashboard');
-            // TODO: CRUD Inertia, APIs de stock, ajustes por sucursal, etc.
-        });
+    /** @var array<string, array{prefix:string, name_prefix:string, dashboard_page:string}> $tenantModuleRoutes */
+    $tenantModuleRoutes = config('modules.tenant_routes', []);
 
-    Route::prefix('packages')
-        ->name('packages.')
-        ->middleware('module:packages')
-        ->group(function (): void {
-            Route::get('/', fn () => Inertia::render('Packages/Dashboard'))->name('dashboard');
-            // TODO: envíos, guías, integración couriers, tracking cliente.
-        });
-
-    Route::prefix('printing')
-        ->name('printing.')
-        ->middleware('module:printing')
-        ->group(function (): void {
-            Route::get('/', fn () => Inertia::render('Printing/Dashboard'))->name('dashboard');
-            // TODO: cola de trabajo taller, estados, asignación por sucursal.
-        });
+    foreach ($tenantModuleRoutes as $module => $routeDefinition) {
+        Route::prefix($routeDefinition['prefix'])
+            ->name($routeDefinition['name_prefix'])
+            ->middleware('module:'.$module)
+            ->group(function () use ($routeDefinition): void {
+                Route::get('/', fn () => Inertia::render($routeDefinition['dashboard_page']))->name('dashboard');
+            });
+    }
 };
 
 /*

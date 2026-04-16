@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Auth\TenantAdminGate;
 use App\Events\PaymentCompleted;
 use App\Events\PaymentFailed;
 use App\Http\Controllers\Auth\TenantAuthController;
@@ -62,6 +63,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewAdmin', function (User $user): bool {
             return $user->is_super_admin === true;
         });
+
+        Gate::before(TenantAdminGate::before(...));
 
         Event::listen(PaymentCompleted::class, [SyncSubscriptionPaymentStatus::class, 'handle']);
         Event::listen(PaymentFailed::class, [SyncSubscriptionPaymentStatus::class, 'handle']);

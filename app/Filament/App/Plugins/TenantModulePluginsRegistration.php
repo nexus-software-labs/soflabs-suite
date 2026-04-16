@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\App\Plugins;
 
+use App\Http\Middleware\Filament\PrepareFilamentPanelContext;
 use App\Modules\Inventory\Filament\InventoryPlugin;
 use App\Modules\Packages\Filament\PackagesPlugin;
 use App\Modules\Printing\Filament\PrintingPlugin;
@@ -13,7 +14,9 @@ use Filament\Panel;
 
 /**
  * Registra en caliente los plugins de módulo cuando el panel hace boot,
- * con TenantContext ya rellenado por {@see \App\Http\Middleware\Filament\PrepareFilamentPanelContext}.
+ * con TenantContext ya rellenado por {@see PrepareFilamentPanelContext}.
+ * Los recursos con rutas que deben existir al cargar rutas van en el panel
+ * provider; aquí solo se aplica lo que depende del contexto (p. ej. widgets).
  */
 final class TenantModulePluginsRegistration implements Plugin
 {
@@ -40,11 +43,11 @@ final class TenantModulePluginsRegistration implements Plugin
     public static function pluginsForContext(TenantContext $context): array
     {
         /** @var array<string, class-string<Plugin>> $map */
-        $map = [
+        $map = config('modules.filament_plugins', [
             'inventory' => InventoryPlugin::class,
             'packages' => PackagesPlugin::class,
             'printing' => PrintingPlugin::class,
-        ];
+        ]);
 
         $plugins = [];
         $seen = [];
@@ -55,6 +58,10 @@ final class TenantModulePluginsRegistration implements Plugin
 
             $class = $map[$module];
             if (isset($seen[$class])) {
+                continue;
+            }
+
+            if (! class_exists($class)) {
                 continue;
             }
 

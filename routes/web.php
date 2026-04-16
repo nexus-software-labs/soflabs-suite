@@ -23,6 +23,7 @@ declare(strict_types=1);
 use App\Http\Controllers\BillingWebhookController;
 use App\Http\Controllers\PrintOrderApiController;
 use App\Http\Controllers\PrintOrderController;
+use App\Http\Controllers\RegisterOrganizationController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -33,6 +34,12 @@ $registerCentralWebRoutes = function (): void {
     Route::inertia('/', 'welcome', [
         'canRegister' => Features::enabled(Features::registration()),
     ])->name('home');
+
+    Route::get('register-organization', [RegisterOrganizationController::class, 'create'])
+        ->name('register-organization.create');
+    Route::post('register-organization', [RegisterOrganizationController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('register-organization.store');
 
     Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::inertia('dashboard', 'dashboard')->name('dashboard');

@@ -7,7 +7,7 @@ use App\Filament\Admin\Resources\CustomerTiers\Pages\EditCustomerTier;
 use App\Filament\Admin\Resources\CustomerTiers\Pages\ListCustomerTiers;
 use App\Filament\Admin\Resources\CustomerTiers\Schemas\CustomerTierForm;
 use App\Filament\Admin\Resources\CustomerTiers\Tables\CustomerTiersTable;
-use App\Models\CustomerTier;
+use App\Models\Core\CustomerTier;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;

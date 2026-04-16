@@ -118,6 +118,33 @@ class TenantForm
                             ->dehydrated(false),
                     ])
                     ->columns(2),
+                Section::make('Administrador inicial')
+                    ->description('Opcional: crea el primer usuario que podrá entrar al panel del inquilino en su subdominio.')
+                    ->schema([
+                        TextInput::make('admin_name')
+                            ->label('Nombre del administrador')
+                            ->maxLength(255)
+                            ->dehydrated(false),
+                        TextInput::make('admin_email')
+                            ->label('Correo del administrador')
+                            ->email()
+                            ->maxLength(255)
+                            ->dehydrated(false),
+                        TextInput::make('admin_password')
+                            ->label('Contraseña')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->dehydrated(false),
+                        TextInput::make('admin_password_confirmation')
+                            ->label('Confirmar contraseña')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255)
+                            ->dehydrated(false),
+                    ])
+                    ->columns(2)
+                    ->visibleOn('create'),
                 Section::make('Módulos activos')
                     ->schema([
                         CheckboxList::make('active_modules')

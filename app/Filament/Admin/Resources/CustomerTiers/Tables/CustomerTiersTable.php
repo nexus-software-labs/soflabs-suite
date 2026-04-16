@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\CustomerTiers\Tables;
 
-use App\Models\CustomerTier;
+use App\Models\Core\CustomerTier;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;

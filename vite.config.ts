@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.tsx',
                 'resources/js/pages/auth/login.tsx',
+                'resources/js/pages/auth/register-organization.tsx',
             ],
             refresh: true,
         }),

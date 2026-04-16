@@ -10,6 +10,10 @@ afterEach(function (): void {
     }
 });
 
+test('las rutas de recursos de inventario del panel app están definidas', function (): void {
+    expect(Route::has('filament.app.resources.inventory.intake-documents.index'))->toBeTrue();
+});
+
 test('invitado en el dominio del panel app es redirigido al login sin UrlGenerationException', function (): void {
     $id = 'urlgen-tenant';
     $tenant = Tenant::withoutEvents(fn (): Tenant => Tenant::factory()->create(['id' => $id]));
