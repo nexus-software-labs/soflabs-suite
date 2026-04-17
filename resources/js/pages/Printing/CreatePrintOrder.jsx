@@ -1,8 +1,12 @@
 import AppLayout from '@/layouts/app-layout';
+import {
+    create as printOrdersCreate,
+    myOrders as printOrdersMyOrders,
+    store as printOrdersStore,
+} from '@/routes/print-orders';
 import { Head, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
-import { route } from 'ziggy-js';
 
 import Step1UploadFiles from '@/components/PrintOrder/Step1UploadFiles';
 import Step2Configuration from '@/components/PrintOrder/Step2Configuration';
@@ -119,11 +123,11 @@ const CreatePrintOrder = ({
     const breadcrumbs = [
         {
             title: 'Mis Pedidos',
-            href: route('print-orders.my-orders'),
+            href: printOrdersMyOrders.url(),
         },
         {
             title: 'Crear Pedido',
-            href: route('print-orders.create'),
+            href: printOrdersCreate.url(),
         },
     ];
     const isAuthenticated = !!auth?.user;
@@ -226,7 +230,7 @@ const CreatePrintOrder = ({
             orderData.finalTotal || orderData.priceBreakdown.total,
         );
 
-        router.post(route('print-orders.store'), formData, {
+        router.post(printOrdersStore.url(), formData, {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {

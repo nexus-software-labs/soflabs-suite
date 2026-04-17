@@ -1,10 +1,15 @@
 // resources/js/Pages/PrintOrders/MyOrders.jsx
 
 import AppLayout from '@/layouts/app-layout';
+import { dashboard } from '@/routes';
+import {
+    create as printOrdersCreate,
+    myOrders as printOrdersMyOrders,
+    show as printOrdersShow,
+} from '@/routes/print-orders';
 import { Head, Link, router } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
-import { route } from 'ziggy-js';
 
 import {
     AlertCircle,
@@ -61,12 +66,14 @@ const MyOrders = ({ orders, stats, filters }) => {
 
     const handleFilter = () => {
         router.get(
-            route('print-orders.my-orders'),
-            {
-                status: statusFilter,
-                from: fromDate,
-                to: toDate,
-            },
+            printOrdersMyOrders.url({
+                query: {
+                    status: statusFilter,
+                    from: fromDate,
+                    to: toDate,
+                },
+            }),
+            {},
             {
                 preserveState: true,
                 preserveScroll: true,
@@ -78,7 +85,7 @@ const MyOrders = ({ orders, stats, filters }) => {
         setStatusFilter('all');
         setFromDate('');
         setToDate('');
-        router.get(route('print-orders.my-orders'));
+        router.get(printOrdersMyOrders.url());
     };
 
     const formatDate = (dateString) => {
@@ -108,11 +115,11 @@ const MyOrders = ({ orders, stats, filters }) => {
     const breadcrumbs = [
         {
             title: 'Dashboard',
-            href: route('dashboard'),
+            href: dashboard.url(),
         },
         {
             title: 'Mis Pedidos',
-            href: route('print-orders.my-orders'),
+            href: printOrdersMyOrders.url(),
         },
     ];
 
@@ -139,7 +146,7 @@ const MyOrders = ({ orders, stats, filters }) => {
                                 </p>
                             </div>
                             <Link
-                                href={route('print-orders.create')}
+                                href={printOrdersCreate.url()}
                                 className="action-button-mbe text-sm font-bold"
                             >
                                 <Plus className="h-4 w-4" />
@@ -372,7 +379,7 @@ const MyOrders = ({ orders, stats, filters }) => {
                                 </p>
                                 {!hasActiveFilters && (
                                     <Link
-                                        href={route('print-orders.create')}
+                                        href={printOrdersCreate.url()}
                                         className="action-button-mbe px-6 py-3 text-sm font-bold"
                                     >
                                         <Plus className="h-4 w-4" />
@@ -440,8 +447,7 @@ const MyOrders = ({ orders, stats, filters }) => {
                                                     >
                                                         <td className="px-6 py-4 whitespace-nowrap">
                                                             <Link
-                                                                href={route(
-                                                                    'print-orders.show',
+                                                                href={printOrdersShow.url(
                                                                     order.order_number,
                                                                 )}
                                                                 className="font-mono text-sm font-bold text-black-600 hover:text-black-700"
@@ -492,8 +498,7 @@ const MyOrders = ({ orders, stats, filters }) => {
                                                         </td>
                                                         <td className="px-6 py-4 text-center whitespace-nowrap">
                                                             <Link
-                                                                href={route(
-                                                                    'print-orders.show',
+                                                                href={printOrdersShow.url(
                                                                     order.order_number,
                                                                 )}
                                                                 className="inline-flex items-center gap-1.5 rounded-lg bg-linear-to-r from-black-500 to-black-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-black-500/30 transition-all hover:from-black-600 hover:to-black-700"

@@ -86,6 +86,9 @@ $registerCentralPrintRoutes = function (): void {
     Route::get('/api/print-config', [PrintOrderApiController::class, 'getConfig']);
     Route::post('/api/print-config/analyze-files', [PrintOrderApiController::class, 'analyzeFiles']);
     Route::post('/api/print-config/calculate-price', [PrintOrderApiController::class, 'calculatePrice']);
+
+    Route::post('/api/promotions/best-promotion', [PrintOrderApiController::class, 'bestPromotion']);
+    Route::post('/api/promotions/validate-coupon', [PrintOrderApiController::class, 'validateCoupon']);
 };
 
 if ($useCentralDomain) {
