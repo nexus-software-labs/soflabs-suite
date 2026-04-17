@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { route } from 'ziggy-js';
 
-import Step1UploadFiles from '@/Components/PrintOrder/Step1UploadFiles';
-import Step2Configuration from '@/Components/PrintOrder/Step2Configuration';
-import Step3Delivery from '@/Components/PrintOrder/Step3Delivery';
-import Step4Confirmation from '@/Components/PrintOrder/Step4Confirmation';
-import Step5payment from '@/Components/PrintOrder/Step5payment';
-import PromotionBanner from '@/Components/PromotionBanner';
+import Step1UploadFiles from '@/components/PrintOrder/Step1UploadFiles';
+import Step2Configuration from '@/components/PrintOrder/Step2Configuration';
+import Step3Delivery from '@/components/PrintOrder/Step3Delivery';
+import Step4Confirmation from '@/components/PrintOrder/Step4Confirmation';
+import Step5payment from '@/components/PrintOrder/Step5payment';
+import PromotionBanner from '@/components/PromotionBanner';
 import VerificationPendingModal from '@/components/VerificationPendingModal';
 
 import {
